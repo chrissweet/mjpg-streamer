@@ -77,6 +77,12 @@ static char plugin_name[] = INPUT_PLUGIN_NAME;
 
 static void null_filter(void* filter_ctx, Mat &src, Mat &dst) {
     dst = src;
+    cv::Point centerCircle1(250,250);
+    int radiusCircle = 30;
+    cv::Scalar colorCircle1(0,0,255);
+    int thicknessCircle1 = 2;
+    
+    cv::circle(dst, centerCircle1, radiusCircle, colorCircle1, thicknessCircle1);
 }
 
 static void help() {
@@ -405,7 +411,7 @@ void *worker_thread(void *arg)
     
     /* setup imencode options */
     vector<int> compression_params;
-    compression_params.push_back(CV_IMWRITE_JPEG_QUALITY);
+    compression_params.push_back(IN_CMD_JPEG_QUALITY);
     compression_params.push_back(settings->quality); // 1-100
     
     free(settings);

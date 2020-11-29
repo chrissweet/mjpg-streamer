@@ -39,3 +39,11 @@ Output plugins:
 * ~output_udp~ (not functional)
 * output_viewer ([documentation](plugins/output_viewer/README.md))
 
+OpenCV use
+==========
+
+
+```
+mjpg_streamer -i "input_opencv.so" -o "output_http.so -w ./www"
+```
+
