@@ -10,7 +10,7 @@ if (PLUGIN_INPUT_OPENCV)
     enable_language(CXX)
     include_directories(${OpenCV_INCLUDE_DIRS})
 
-    MJPG_STREAMER_PLUGIN_COMPILE(input_opencv input_opencv.cpp)
+    MJPG_STREAMER_PLUGIN_COMPILE(input_opencv input_opencv.cpp parse_json.c)
     
     target_link_libraries(input_opencv ${OpenCV_LIBS})
     

@@ -28,6 +28,10 @@
 
 #include "opencv2/opencv.hpp"
 
+extern "C"{
+#include "parse_json.h"
+}
+
 using namespace cv;
 using namespace std;
 
@@ -145,7 +149,9 @@ int input_init(input_parameter *param, int plugin_no)
     const char * device = "default";
     const char *filter = NULL, *filter_args = "";
     int width = 640, height = 480, i, device_idx;
-    
+    // arrays to be assigned
+    int *marker_start, *marker_mid, *marker_end, num_angles, num_markers, *angles, ret;
+
     input * in;
     context *pctx;
     context_settings *settings;
@@ -332,6 +338,35 @@ int input_init(input_parameter *param, int plugin_no)
         pctx->filter_free = NULL;
     }
     
+
+    ret = parse_json(&marker_start, &marker_mid, &marker_end, &num_angles, &num_markers, &angles);
+
+    // print if OK
+    if( ret == EXIT_SUCCESS){
+        printf("Angles %d, Markers %d\n", num_angles, num_markers);
+
+        // print out data
+        int j;
+        for (j = 0; j < num_angles; j++) {
+        int k;
+        for (k = 0; k < num_markers; k++) {
+            printf("Start %d, Mid %d, End %d\n", marker_start[k * num_angles + j], marker_mid[k * num_angles + j], marker_end[k * num_angles + j]);
+        }
+        }
+
+        // and angles
+        for (j = 0; j < num_angles; j++) {
+        printf("Angle %d\n", angles[j]);
+        }
+    }
+
+    // dealloc
+    free(marker_start); 
+    free(marker_mid); 
+    free(marker_end); 
+
+    free(angles);
+
     return 0;
     
 fatal_error:
