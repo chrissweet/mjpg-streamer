@@ -252,7 +252,7 @@ int parse_json(int **marker_start, int **marker_mid, int **marker_end, int *num_
           //printf("array! %d\n", g->size);
           // test second dimention matches num_markers
           int sz_arr_inner = g->size;
-          if(sz_arr_inner != num_markers){
+          if(sz_arr_inner != num_markers * 2){
             printf("Second dimention %d does not match markers %d!\n", sz_arr_inner, num_markers);
             return EXIT_FAILURE;
           }

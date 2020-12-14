@@ -79,14 +79,31 @@ void worker_cleanup(void *);
 #define INPUT_PLUGIN_NAME "OpenCV Input plugin"
 static char plugin_name[] = INPUT_PLUGIN_NAME;
 
+// arrays to be assigned
+static int *marker_start, *marker_mid, *marker_end, num_angles, num_markers, *angles;
+
 static void null_filter(void* filter_ctx, Mat &src, Mat &dst) {
     dst = src;
+
+    // draw test circle
     cv::Point centerCircle1(250,250);
     int radiusCircle = 30;
     cv::Scalar colorCircle1(0,0,255);
     int thicknessCircle1 = 2;
     
     cv::circle(dst, centerCircle1, radiusCircle, colorCircle1, thicknessCircle1);
+
+    // draw lines
+    for(int i=0; i<num_markers; i++){
+        int ang = 0;
+
+        cv::Point p1(marker_start[(i * 2) * num_angles + ang],marker_start[(i * 2 + 1) * num_angles + ang]);
+        cv::Point p2(marker_end[(i * 2) * num_angles + ang],marker_end[(i * 2 + 1) * num_angles + ang]);
+        cv::Scalar colorLine(0,255,0); // Green
+        int thicknessLine = 2;
+        
+        cv::line(dst, p1, p2, colorLine, thicknessLine);
+    }
 }
 
 static void help() {
@@ -150,7 +167,7 @@ int input_init(input_parameter *param, int plugin_no)
     const char *filter = NULL, *filter_args = "";
     int width = 640, height = 480, i, device_idx;
     // arrays to be assigned
-    int *marker_start, *marker_mid, *marker_end, num_angles, num_markers, *angles, ret;
+    int ret;
 
     input * in;
     context *pctx;
@@ -338,7 +355,7 @@ int input_init(input_parameter *param, int plugin_no)
         pctx->filter_free = NULL;
     }
     
-
+    // read JSON to get markers
     ret = parse_json(&marker_start, &marker_mid, &marker_end, &num_angles, &num_markers, &angles);
 
     // print if OK
@@ -359,13 +376,6 @@ int input_init(input_parameter *param, int plugin_no)
         printf("Angle %d\n", angles[j]);
         }
     }
-
-    // dealloc
-    free(marker_start); 
-    free(marker_mid); 
-    free(marker_end); 
-
-    free(angles);
 
     return 0;
     
@@ -515,4 +525,12 @@ void worker_cleanup(void *arg)
         delete pctx;
         in->context = NULL;
     }
+
+    // dealloc
+    free(marker_start); 
+    free(marker_mid); 
+    free(marker_end); 
+
+    free(angles);
+
 }
