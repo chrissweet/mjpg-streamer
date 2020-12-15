@@ -32,6 +32,10 @@ extern "C"{
 #include "parse_json.h"
 }
 
+// int to string
+#include <iostream>
+#include<string>
+
 using namespace cv;
 using namespace std;
 
@@ -81,6 +85,7 @@ static char plugin_name[] = INPUT_PLUGIN_NAME;
 
 // arrays to be assigned
 static int *marker_color, *marker_start, *marker_mid, *marker_end, num_angles, num_markers, *angles;
+static int angle = 11;
 
 static void null_filter(void* filter_ctx, Mat &src, Mat &dst) {
     dst = src;
@@ -97,7 +102,19 @@ static void null_filter(void* filter_ctx, Mat &src, Mat &dst) {
     // part circle, draw angle over base
     int lineType = 8;
     cv::ellipse(dst, centerCircle1, Size( radiusCircle, radiusCircle ), 0, 180, 360, colorCircleBg, thicknessCircle1, lineType);
-    cv::ellipse(dst, centerCircle1, Size( radiusCircle, radiusCircle ), 0, 270, 285, colorCircle1, thicknessCircle1, lineType);
+    cv::ellipse(dst, centerCircle1, Size( radiusCircle, radiusCircle ), 0, 270, 270 + angle, colorCircle1, thicknessCircle1, lineType);
+
+    // put text of angle
+    cv::Point centerText(305,40);
+    string str = to_string(angle);
+    str.append("'"); //"\370"
+    cv::putText(dst, //target image
+            str.c_str(), //text
+            centerText, //top-left position
+            cv::FONT_HERSHEY_DUPLEX,
+            0.75,
+            colorCircleBg, //font color
+            2);
 
     // draw lines
     for(int i=0; i<num_markers; i++){
