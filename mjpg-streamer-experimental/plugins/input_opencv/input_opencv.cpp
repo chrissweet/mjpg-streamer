@@ -80,29 +80,59 @@ void worker_cleanup(void *);
 static char plugin_name[] = INPUT_PLUGIN_NAME;
 
 // arrays to be assigned
-static int *marker_start, *marker_mid, *marker_end, num_angles, num_markers, *angles;
+static int *marker_color, *marker_start, *marker_mid, *marker_end, num_angles, num_markers, *angles;
 
 static void null_filter(void* filter_ctx, Mat &src, Mat &dst) {
     dst = src;
 
     // draw test circle
-    cv::Point centerCircle1(250,250);
+    cv::Point centerCircle1(320,40);
     int radiusCircle = 30;
-    cv::Scalar colorCircle1(0,0,255);
+    cv::Scalar colorCircle1(255,0,0);
+    cv::Scalar colorCircleBg(255,255,255);
     int thicknessCircle1 = 2;
     
-    cv::circle(dst, centerCircle1, radiusCircle, colorCircle1, thicknessCircle1);
+    //cv::circle(dst, centerCircle1, radiusCircle, colorCircle1, thicknessCircle1);
+
+    // part circle, draw angle over base
+    int lineType = 8;
+    cv::ellipse(dst, centerCircle1, Size( radiusCircle, radiusCircle ), 0, 180, 360, colorCircleBg, thicknessCircle1, lineType);
+    cv::ellipse(dst, centerCircle1, Size( radiusCircle, radiusCircle ), 0, 270, 285, colorCircle1, thicknessCircle1, lineType);
 
     // draw lines
     for(int i=0; i<num_markers; i++){
         int ang = 0;
 
+        int col = marker_color[i];
+        cv::Scalar colorLine((col & 0x07) * 36, ((col & 0x038) >> 3) * 36, ((col & 0x01C0) >> 6) * 36); // RGB
+
+        int thicknessLine = 2;
+
+        // draw main line
         cv::Point p1(marker_start[(i * 2) * num_angles + ang],marker_start[(i * 2 + 1) * num_angles + ang]);
         cv::Point p2(marker_end[(i * 2) * num_angles + ang],marker_end[(i * 2 + 1) * num_angles + ang]);
-        cv::Scalar colorLine(0,255,0); // Green
-        int thicknessLine = 2;
         
         cv::line(dst, p1, p2, colorLine, thicknessLine);
+
+        // link lines together?
+        if(i < num_markers - 1){
+            // add start line
+            cv::Point p1a(marker_start[(i * 2) * num_angles + ang],marker_start[(i * 2 + 1) * num_angles + ang]);
+            cv::Point p2a(marker_start[((i + 1) * 2) * num_angles + ang],marker_start[((i + 1) * 2 + 1) * num_angles + ang]);
+            cv::line(dst, p1a, p2a, colorLine, thicknessLine);
+
+            // add end line
+            cv::Point p1b(marker_end[(i * 2) * num_angles + ang],marker_end[(i * 2 + 1) * num_angles + ang]);
+            cv::Point p2b(marker_end[((i + 1) * 2) * num_angles + ang],marker_end[((i + 1) * 2 + 1) * num_angles + ang]);
+            cv::line(dst, p1b, p2b, colorLine, thicknessLine);
+
+            // add mid line
+            cv::Point p1c(marker_mid[(i * 2) * num_angles + ang],marker_mid[(i * 2 + 1) * num_angles + ang]);
+            cv::Point p2c(marker_mid[((i + 1) * 2) * num_angles + ang],marker_mid[((i + 1) * 2 + 1) * num_angles + ang]);
+            cv::line(dst, p1c, p2c, colorLine, thicknessLine);
+
+        }
+
     }
 }
 
@@ -356,7 +386,7 @@ int input_init(input_parameter *param, int plugin_no)
     }
     
     // read JSON to get markers
-    ret = parse_json(&marker_start, &marker_mid, &marker_end, &num_angles, &num_markers, &angles);
+    ret = parse_json(&marker_color, &marker_start, &marker_mid, &marker_end, &num_angles, &num_markers, &angles);
 
     // print if OK
     if( ret == EXIT_SUCCESS){
@@ -365,15 +395,20 @@ int input_init(input_parameter *param, int plugin_no)
         // print out data
         int j;
         for (j = 0; j < num_angles; j++) {
-        int k;
-        for (k = 0; k < num_markers; k++) {
-            printf("Start %d, Mid %d, End %d\n", marker_start[k * num_angles + j], marker_mid[k * num_angles + j], marker_end[k * num_angles + j]);
-        }
+            int k;
+            for (k = 0; k < num_markers; k++) {
+                printf("Start %d, Mid %d, End %d\n", marker_start[k * num_angles + j], marker_mid[k * num_angles + j], marker_end[k * num_angles + j]);
+            }
         }
 
         // and angles
         for (j = 0; j < num_angles; j++) {
-        printf("Angle %d\n", angles[j]);
+            printf("Angle %d\n", angles[j]);
+        }
+
+        // and colors
+        for (j = 0; j < num_markers; j++) {
+            printf("Color %d\n", marker_color[j]);
         }
     }
 
@@ -530,6 +565,7 @@ void worker_cleanup(void *arg)
     free(marker_start); 
     free(marker_mid); 
     free(marker_end); 
+    free(marker_color);
 
     free(angles);
 

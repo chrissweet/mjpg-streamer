@@ -99,7 +99,7 @@ static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
 }
 
 // Parse JSON file
-int parse_json(int **marker_start, int **marker_mid, int **marker_end, int *num_ang, int* num_mark, int **angles) {
+int parse_json(int **marker_color, int **marker_start, int **marker_mid, int **marker_end, int *num_ang, int* num_mark, int **angles) {
   int i;
   int r;
   jsmn_parser p;
@@ -166,12 +166,15 @@ int parse_json(int **marker_start, int **marker_mid, int **marker_end, int *num_
   *num_mark = num_markers;
 
   /* allocate */
-  *marker_start = (int*) malloc(num_angles * num_markers * sizeof(int));
-  *marker_mid = (int*) malloc(num_angles * num_markers * sizeof(int));
-  *marker_end = (int*) malloc(num_angles * num_markers * sizeof(int));
+  *marker_start = (int*) malloc(num_angles * num_markers * 2 * sizeof(int));
+  *marker_mid = (int*) malloc(num_angles * num_markers * 2 * sizeof(int));
+  *marker_end = (int*) malloc(num_angles * num_markers * 2 * sizeof(int));
 
-  //angles
+  // angles
   *angles = (int*) malloc(num_angles * sizeof(int));
+
+  // colors
+  *marker_color = (int*) malloc(num_markers * sizeof(int));
 
   // allocated by malloc or not 
   if (*marker_start == NULL || *marker_mid == NULL || *marker_end == NULL || *angles == NULL) { 
@@ -206,7 +209,32 @@ int parse_json(int **marker_start, int **marker_mid, int **marker_end, int *num_
       }
 
       i = indx - 1;
-    
+
+    } else if (jsoneq(buf, &t[i], "marker_color") == 0) {
+      int indx = i + 1;
+      if (t[indx].type != JSMN_ARRAY) {
+        continue; /* We expect colors to be an array of strings */
+      }
+
+      // test first dimention matches angles
+      int sz_arr = t[indx++].size;
+
+      if(sz_arr != num_markers){
+        printf("Number of colors %d does not match num_markers %d!\n", sz_arr, num_markers);
+        return EXIT_FAILURE;
+      }
+
+      // loop over colors
+      int j;
+      for (j = 0; j < sz_arr; j++) {
+        jsmntok_t *gi = &t[indx++];
+        int x = atoi(buf + gi->start);
+        //printf("  ang* %.*s, %d\n", gi->end - gi->start, buf + gi->start, x);
+        (*marker_color)[j] = x;
+      }
+
+      i = indx - 1;
+
     /* section for location arrays */
     } else if (jsoneq(buf, &t[i], "marker_start") == 0 ||
                 jsoneq(buf, &t[i], "marker_mid") == 0 ||
