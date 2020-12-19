@@ -102,17 +102,23 @@ static void null_filter(void* filter_ctx, Mat &src, Mat &dst) {
     // part circle, draw angle over base
     int lineType = 8;
     cv::ellipse(dst, centerCircle1, Size( radiusCircle, radiusCircle ), 0, 180, 360, colorCircleBg, thicknessCircle1, lineType);
-    cv::ellipse(dst, centerCircle1, Size( radiusCircle, radiusCircle ), 0, 270, 270 + angle, colorCircle1, thicknessCircle1, lineType);
+    cv::ellipse(dst, centerCircle1, Size( radiusCircle, radiusCircle ), 0, 270, 270 - angle, colorCircle1, thicknessCircle1, lineType);
 
     // put text of angle
-    cv::Point centerText(305,40);
     string str = to_string(angle);
+
+    // find text size
+    int baseline=0;
+    cv::Size tsz = cv::getTextSize (str.c_str(), cv::FONT_HERSHEY_DUPLEX, 0.70, 2, &baseline);
+    //printf("sz %d\n", tsz.width);
+    cv::Point centerText(320 - tsz.width/2,47);
+
     str.append("'"); //"\370"
     cv::putText(dst, //target image
             str.c_str(), //text
             centerText, //top-left position
             cv::FONT_HERSHEY_DUPLEX,
-            0.75,
+            0.70,
             colorCircleBg, //font color
             2);
 
@@ -157,7 +163,7 @@ static void help() {
     
     fprintf(stderr,
     " ---------------------------------------------------------------\n" \
-    " Help for input plugin..: "INPUT_PLUGIN_NAME"\n" \
+    " Help for input plugin..: INPUT_PLUGIN_NAME\n" \
     " ---------------------------------------------------------------\n" \
     " The following parameters can be passed to this plugin:\n\n" \
     " [-d | --device ].......: video device to open (your camera)\n" \
