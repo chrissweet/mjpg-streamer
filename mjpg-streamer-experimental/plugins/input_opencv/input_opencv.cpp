@@ -92,7 +92,7 @@ static void null_filter(void* filter_ctx, Mat &src, Mat &dst) {
 
     // draw test circle
     cv::Point centerCircle1(320,40);
-    int radiusCircle = 30;
+    int radiusCircle = 35;
     cv::Scalar colorCircle1(255,0,0);
     cv::Scalar colorCircleBg(255,255,255);
     int thicknessCircle1 = 2;
@@ -109,16 +109,16 @@ static void null_filter(void* filter_ctx, Mat &src, Mat &dst) {
 
     // find text size
     int baseline=0;
-    cv::Size tsz = cv::getTextSize (str.c_str(), cv::FONT_HERSHEY_DUPLEX, 0.70, 2, &baseline);
+    cv::Size tsz = cv::getTextSize (str.c_str(), cv::FONT_HERSHEY_DUPLEX, 0.75, 2, &baseline);
     //printf("sz %d\n", tsz.width);
-    cv::Point centerText(320 - tsz.width/2,47);
+    cv::Point centerText(320 - tsz.width/2,40 + tsz.height/2);
 
     str.append("'"); //"\370"
     cv::putText(dst, //target image
             str.c_str(), //text
             centerText, //top-left position
             cv::FONT_HERSHEY_DUPLEX,
-            0.70,
+            0.75,
             colorCircleBg, //font color
             2);
 
