@@ -5,4 +5,7 @@
 /* Prototypes for the functions */
 int parse_json(int **marker_color, int **marker_start, int **marker_mid, int **marker_end, int *num_ang, int* num_mark, int **angles);
 
+/* variables */
+extern int angle;
+
 #endif

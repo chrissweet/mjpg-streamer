@@ -3,7 +3,35 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+//#include "input_opencv.h"
 
+int angle = 11;
+
+/******************************************************************************
+Description.: process commands, allows to set v4l2 controls
+Input Value.: * control specifies the selected v4l2 control's id
+                see struct v4l2_queryctr in the videodev2.h
+              * value is used for control that make use of a parameter.
+Return Value: depends in the command, for most cases 0 means no errors and
+              -1 signals an error. This is just rule of thumb, not more!
+******************************************************************************/
+int input_cmd(int plugin_number, unsigned int control_id, unsigned int group, int value, char *value_string)
+{
+  printf("Command: P num: %d, cont id: %d, grp: %d, val: %d, vals: %s.\n",plugin_number, control_id, group, value, value_string);
+
+  // angle command?
+  if(control_id == 0){
+    // get angle
+    int inp_angle = strtol(&value_string[5], NULL, 10);
+    printf("Angle: %d.\n", inp_angle);
+
+    // set angle
+    angle = inp_angle;
+
+  }
+
+  return 0;
+}
 /*
  * 'slurp' reads the file identified by 'path' into a character buffer
  * pointed at by 'buf', optionally adding a terminating NUL if

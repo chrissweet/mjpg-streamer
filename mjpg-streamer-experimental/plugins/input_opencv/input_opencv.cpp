@@ -85,7 +85,7 @@ static char plugin_name[] = INPUT_PLUGIN_NAME;
 
 // arrays to be assigned
 static int *marker_color, *marker_start, *marker_mid, *marker_end, num_angles, num_markers, *angles;
-static int angle = 11;
+//static int angle = 11;
 
 static void null_filter(void* filter_ctx, Mat &src, Mat &dst) {
     dst = src;
