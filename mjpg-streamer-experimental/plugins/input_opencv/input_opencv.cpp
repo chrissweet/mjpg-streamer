@@ -23,6 +23,7 @@
 #include <getopt.h>
 #include <dlfcn.h>
 #include <pthread.h>
+#include <vector>
 
 #include "input_opencv.h"
 
@@ -84,8 +85,9 @@ void worker_cleanup(void *);
 static char plugin_name[] = INPUT_PLUGIN_NAME;
 
 // arrays to be assigned
-static int *marker_color, *marker_start, *marker_mid, *marker_end, num_angles, num_markers, *angles;
+static int *marker_color, *marker_start, *marker_mid, *marker_end, num_angles, num_markers, *angles, old_angle = INT_MAX, ang = 0;
 //static int angle = 11;
+static std::vector<int> marker_start_i, marker_end_i, marker_mid_i;
 
 static void null_filter(void* filter_ctx, Mat &src, Mat &dst) {
     dst = src;
@@ -123,20 +125,43 @@ static void null_filter(void* filter_ctx, Mat &src, Mat &dst) {
             2);
 
     // select angle
-    int ang = 0;
+    //int ang = 0;
 
     // find index
     // test outside lower bound
-    if(angle < angles[0]){
-        ang = 0;
-    }else{
-        // should find an index to interpolate between ang and ang + 1
-        for(ang = 0; ang < num_angles - 1; ang++){
-            if(angle >= angles[ang] && angle < angles[ang + 1]) break;
+    if(angle != old_angle){
+        old_angle = angle;
+        
+        if(angle < angles[0]){
+            ang = 0;
+        }else{
+            // should find an index to interpolate between ang and ang + 1
+            for(ang = 0; ang < num_angles - 1; ang++){
+                if(angle >= angles[ang] && angle < angles[ang + 1]) break;
+            }
         }
-    }
 
-    //printf("Index %d\n", ang);
+        if(ang == num_angles - 1){
+            ang--;
+        }
+
+        // get interpolant ratio
+        float ratio = (float)(angle - angles[ang]) / (float)(angles[ang + 1] - angles[ang]);
+
+        // copy arrays
+        marker_mid_i.clear();
+        marker_start_i.clear();
+        marker_end_i.clear();
+        for(int i = 0; i < num_markers * 2; i++){
+            int mid = marker_mid[i * num_angles + ang] + (int)((float)(marker_mid[i * num_angles + ang + 1] - marker_mid[i * num_angles + ang]) * ratio + 0.5);
+            marker_mid_i.push_back(mid);
+            int start = marker_start[i * num_angles + ang] + (int)((float)(marker_start[i * num_angles + ang + 1] - marker_start[i * num_angles + ang]) * ratio + 0.5);
+            marker_start_i.push_back(start);
+            int end = marker_end[i * num_angles + ang] + (int)((float)(marker_end[i * num_angles + ang + 1] - marker_end[i * num_angles + ang]) * ratio + 0.5);
+            marker_end_i.push_back(end);
+        }
+        printf("Index %d, vector size %d.\n", ang, marker_mid_i.size());
+    }
 
     // draw lines
     for(int i=0; i<num_markers; i++){
@@ -148,26 +173,26 @@ static void null_filter(void* filter_ctx, Mat &src, Mat &dst) {
         int thicknessLine = 2;
 
         // draw main line
-        cv::Point p1(marker_start[(i * 2) * num_angles + ang],marker_start[(i * 2 + 1) * num_angles + ang]);
-        cv::Point p2(marker_end[(i * 2) * num_angles + ang],marker_end[(i * 2 + 1) * num_angles + ang]);
+        cv::Point p1(marker_start_i[(i * 2)],marker_start_i[(i * 2 + 1)]);
+        cv::Point p2(marker_end_i[(i * 2)],marker_end_i[(i * 2 + 1)]);
         
         cv::line(dst, p1, p2, colorLine, thicknessLine);
 
         // link lines together?
         if(i < num_markers - 1){
             // add start line
-            cv::Point p1a(marker_start[(i * 2) * num_angles + ang],marker_start[(i * 2 + 1) * num_angles + ang]);
-            cv::Point p2a(marker_start[((i + 1) * 2) * num_angles + ang],marker_start[((i + 1) * 2 + 1) * num_angles + ang]);
+            cv::Point p1a(marker_start_i[(i * 2)],marker_start_i[(i * 2 + 1)]);
+            cv::Point p2a(marker_start_i[((i + 1) * 2)],marker_start_i[((i + 1) * 2 + 1)]);
             cv::line(dst, p1a, p2a, colorLine, thicknessLine);
 
             // add end line
-            cv::Point p1b(marker_end[(i * 2) * num_angles + ang],marker_end[(i * 2 + 1) * num_angles + ang]);
-            cv::Point p2b(marker_end[((i + 1) * 2) * num_angles + ang],marker_end[((i + 1) * 2 + 1) * num_angles + ang]);
+            cv::Point p1b(marker_end_i[(i * 2)],marker_end_i[(i * 2 + 1)]);
+            cv::Point p2b(marker_end_i[((i + 1) * 2)],marker_end_i[((i + 1) * 2 + 1)]);
             cv::line(dst, p1b, p2b, colorLine, thicknessLine);
 
             // add mid line
-            cv::Point p1c(marker_mid[(i * 2) * num_angles + ang],marker_mid[(i * 2 + 1) * num_angles + ang]);
-            cv::Point p2c(marker_mid[((i + 1) * 2) * num_angles + ang],marker_mid[((i + 1) * 2 + 1) * num_angles + ang]);
+            cv::Point p1c(marker_mid_i[(i * 2)],marker_mid_i[(i * 2 + 1)]);
+            cv::Point p2c(marker_mid_i[((i + 1) * 2)],marker_mid_i[((i + 1) * 2 + 1)]);
             cv::line(dst, p1c, p2c, colorLine, thicknessLine);
 
         }
