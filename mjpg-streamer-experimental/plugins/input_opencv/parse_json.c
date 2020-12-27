@@ -131,7 +131,7 @@ int parse_json(int **marker_color, int **marker_start, int **marker_mid, int **m
   int i;
   int r;
   jsmn_parser p;
-  jsmntok_t t[128]; /* We expect no more than 128 tokens */
+  jsmntok_t t[512]; /* We expect no more than 512 tokens */
   long  file_size;
   char *buf;
 

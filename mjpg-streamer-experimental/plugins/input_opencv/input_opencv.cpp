@@ -124,7 +124,7 @@ static void null_filter(void* filter_ctx, Mat &src, Mat &dst) {
 
     // draw lines
     for(int i=0; i<num_markers; i++){
-        int ang = 0;
+        int ang = 1;
 
         int col = marker_color[i];
         cv::Scalar colorLine((col & 0x07) * 36, ((col & 0x038) >> 3) * 36, ((col & 0x01C0) >> 6) * 36); // RGB
