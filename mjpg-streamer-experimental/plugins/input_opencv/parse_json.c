@@ -5,7 +5,7 @@
 #include <stdbool.h>
 //#include "input_opencv.h"
 
-int angle = 11;
+int angle = 0;
 
 /******************************************************************************
 Description.: process commands, allows to set v4l2 controls

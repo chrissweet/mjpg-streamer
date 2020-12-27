@@ -122,10 +122,26 @@ static void null_filter(void* filter_ctx, Mat &src, Mat &dst) {
             colorCircleBg, //font color
             2);
 
+    // select angle
+    int ang = 0;
+
+    // find index
+    // test outside lower bound
+    if(angle < angles[0]){
+        ang = 0;
+    }else{
+        // should find an index to interpolate between ang and ang + 1
+        for(ang = 0; ang < num_angles - 1; ang++){
+            if(angle >= angles[ang] && angle < angles[ang + 1]) break;
+        }
+    }
+
+    //printf("Index %d\n", ang);
+
     // draw lines
     for(int i=0; i<num_markers; i++){
-        int ang = 1;
 
+        // get color for this marker
         int col = marker_color[i];
         cv::Scalar colorLine((col & 0x07) * 36, ((col & 0x038) >> 3) * 36, ((col & 0x01C0) >> 6) * 36); // RGB
 
