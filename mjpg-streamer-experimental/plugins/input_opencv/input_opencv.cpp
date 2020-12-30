@@ -90,7 +90,10 @@ static int *marker_color, *marker_start, *marker_mid, *marker_end, num_angles, n
 static std::vector<int> marker_start_i, marker_end_i, marker_mid_i;
 
 static void null_filter(void* filter_ctx, Mat &src, Mat &dst) {
-    dst = src;
+
+    // flip input horizontally
+    flip(src, dst, 1);
+    //dst = src;
 
     // draw test circle
     cv::Point centerCircle1(320,40);
@@ -127,11 +130,12 @@ static void null_filter(void* filter_ctx, Mat &src, Mat &dst) {
     // select angle
     //int ang = 0;
 
-    // find index
-    // test outside lower bound
+    // find index and interpolate
+    // was there an angle change?
     if(angle != old_angle){
         old_angle = angle;
         
+        // test outside lower bound
         if(angle < angles[0]){
             ang = 0;
         }else{
@@ -141,6 +145,7 @@ static void null_filter(void* filter_ctx, Mat &src, Mat &dst) {
             }
         }
 
+        // fix if angle outside json lookup
         if(ang == num_angles - 1){
             ang--;
         }
