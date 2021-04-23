@@ -136,7 +136,7 @@ int parse_json(int **marker_color, int **marker_start, int **marker_mid, int **m
   char *buf;
 
   /* Try the first command-line argument as a file name */
-  file_size = slurp("marker.json", &buf, false);
+  file_size = slurp("/home/pi/marker.json", &buf, false);
 
   /* Bail if we get a negative file size back from slurp() */
   if( file_size < 0L ) {
